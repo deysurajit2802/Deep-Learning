@@ -1,0 +1,103 @@
+%Perceptron
+clc
+clear all
+tic
+data=xlsread('4points.xlsx');
+toc
+[m,n]=size(data);
+%Initialization
+W=zeros(n-1,1);
+W0=0;
+epo=0;
+lear_rate=10^-4;
+ 
+while true
+    epo=epo+1;
+    C_mat=zeros(2,2);
+    for i=1:m
+        %evaluating the net function
+        z_val=dot(W,data(i,1:n-1))+W0;
+        %employing the activation function
+        if z_val>=0
+            y_new=1;
+        elseif z_val<0
+            y_new=-1;
+        end
+        %evaluating the confusion matrix
+        if y_new==data(i,n)
+ 
+            if y_new==1
+                C_mat(1,1)=C_mat(1,1)+1;
+            end
+            if y_new==-1
+                C_mat(2,2)=C_mat(2,2)+1;
+            end
+        end
+        
+        if y_new~=data(i,n)
+            
+            if y_new==1  &&  data(i,n)==-1
+                
+                C_mat(2,1)=C_mat(2,1)+1;
+            end
+            if y_new==-1  &&  data(i,n)==1
+                
+                C_mat(1,2)=C_mat(1,2)+1;
+            end
+        end
+        %Updating the weights
+        W_new=W'+lear_rate*(data(i,n)-y_new)*data(i,1:n-1);
+        %Updating the bias
+        W0_new=W0+lear_rate*(data(i,n)-y_new);
+        %loop updating
+        W=W_new';
+        W0=W0_new;
+    end
+    
+     correct=trace(C_mat);
+        if  epo>=10000
+        C_mat
+        epo
+        break;
+        end
+ 
+end
+toc
+W
+W0
+ 
+ 
+% Plot(correct_val (:,1), correct_val(:,2))
+a=1;
+b=1;
+for i=1:100
+    for j=1:100
+        z_val=W0+W(1,1)*i+W(2,1)*j;
+        if z_val>=0
+            data_0(a,1)=i;
+            data_0(a,2)=j;
+            a=a+1;
+        elseif z_val<0
+            data_1(b,1)=i;
+            data_1(b,2)=j;
+            b=b+1;
+        end
+    end
+end
+ 
+xlswrite('data_0_4points.xlsx',data_0);
+xlswrite('data_1_4points.xlsx',data_1);
+hold on
+ 
+scatter(data_0(:,1), data_0(:,2),...
+    'MarkerFaceColor', [1 1 1]...
+    )
+ 
+scatter(data_1(:,1), data_1(:,2),...
+    'MarkerFaceColor', [1 1 0]...
+    )
+scatter(data(:,1), data(:,2),...
+    'MarkerFaceColor', [0.2 0.2 0.1 ]...
+    )
+ 
+hold off
