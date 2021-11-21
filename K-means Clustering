@@ -1,0 +1,92 @@
+clc
+clear all
+tic
+data=xlsread('Clust_data.xlsx');
+toc
+[row,col]=size(data);
+%Number of clusters
+N_clus=2;
+%Initialize the centroids
+% centroid=zeros(N_clus,2);
+centroid(1,1)=5;
+centroid(1,2)=5;
+centroid(2,1)=8;
+centroid(2,2)=8;
+ 
+%Change in centroids
+% delta_X=(max(data(:,1))-min(data(:,1)))/(N_clus+1);
+% delta_Y=(max(data(:,2))-min(data(:,2)))/(N_clus+1);
+% 
+% for i=1:N_clus
+%     centroid(i,1)=min(data(:,1))+i*delta_X;
+%     centroid(i,2)=min(data(:,2))+i*delta_Y;
+% end
+centroid
+epo=0;
+div=10;
+while div>10^-6
+    
+old_dist=0;
+new_dist=0;
+N_points_clus=zeros(N_clus,1);
+obs=ones(N_clus,1);
+clear dataset
+%distance of data points from the centroids
+for i=1:row
+    for j=1:N_clus
+        dist(j,1)=sqrt((data(i,1)-centroid(j,1))^2+(data(i,2)-centroid(j,2))^2);
+    end
+% dist
+%minimum distance and cluster number
+[min_dist,clu_num]=min(dist);
+ 
+%add the point in the respective cluster
+N_points_clus(clu_num,1)=N_points_clus(clu_num,1)+1;
+ 
+%Total minimum distance calculation
+old_dist=old_dist+min_dist;
+ 
+%Appending new data to the separate dataset of clusters
+dataset(obs(clu_num,1),2*clu_num-1)=data(i,1);
+dataset(obs(clu_num,1),2*clu_num)=data(i,2);
+obs(clu_num,1)=obs(clu_num,1)+1;
+end
+ 
+% dataset
+% old_dist
+ 
+for x=1:N_clus
+    %update the centroids
+    centroid(x,1)=sum(dataset(:,2*x-1))/N_points_clus(x,1);
+    centroid(x,2)=sum(dataset(:,2*x))/N_points_clus(x,1);
+    %calculate the distance from updated centroids
+    for y=1:N_points_clus(x,1)
+        new_dist=new_dist+sqrt((dataset(y,2*x-1)-centroid(x,1))^2+(dataset(y,2*x)-centroid(x,2))^2);
+    end
+end
+% centroid
+% new_dist
+ 
+%convergence criteria
+div=(old_dist-new_dist)/old_dist;
+epo=epo+1;
+end
+ 
+ 
+%Plot
+hold on
+for i=1:N_clus
+    scatter(dataset(1:N_points_clus(i,1),2*i-1),dataset(1:N_points_clus(i,1),2*i),...
+        'MarkerFaceColor', [i*0.5/N_clus i*0.5/N_clus i*0.5/N_clus]...
+        )
+    variance=0.5*var(dataset(1:N_points_clus(i,1),2*i-1)) + 0.5*var(dataset(1:N_points_clus(i,1),2*i))
+end
+scatter(centroid(:,1),centroid(:,2),...
+    'MarkerFaceColor', [1 1 0.5]...
+    )
+hold off
+ 
+dataset
+epo
+centroid
+toc
