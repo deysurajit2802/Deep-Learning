@@ -1,0 +1,171 @@
+clc
+clear all
+tic
+data=xlsread('data_data_NonLin.xlsx');
+toc
+[row,col]=size(data);
+for i=1:col
+    data(:,i)=(data(:,i)-mean(data(:,i)))/(std(data(:,i)));
+end
+ 
+epo=0;
+lear_rate=10^-1;
+ 
+%Weights and Bias
+%1st Neuron of Hidden Layer
+W11=ones(2,1)*10^-2;
+b11=10^-2;
+ 
+%2nd Neuron of Hidden Layer
+W12=ones(2,1)*10^-2;
+b12=10^-2;
+ 
+%3rd Neuron of Hidden Layer
+W13=ones(2,1)*10^-2;
+b13=10^-2;
+ 
+%4th Neuron of Hidden Layer
+W14=ones(2,1)*10^-2;
+b14=10^-2;
+ 
+%5th Neuron of Hidden Layer
+W15=ones(2,1)*10^-2;
+b15=10^-2;
+ 
+%6th Neuron of Hidden Layer
+W16=ones(2,1)*10^-2;
+b16=10^-2;
+ 
+%Neuron of Output Layer
+W21=ones(6,1)*10^-2;
+b21=10^-2;
+ 
+ 
+while true
+    
+    epo=epo+1;
+    
+    for i=1:row
+        
+    %Hidden Layer
+    %Net Input Function
+    Z11(i,1)=dot(W11,data(i,1:col-1))+b11;
+    Z12(i,1)=dot(W12,data(i,1:col-1))+b12;
+    Z13(i,1)=dot(W13,data(i,1:col-1))+b13;
+    Z14(i,1)=dot(W14,data(i,1:col-1))+b14;
+    Z15(i,1)=dot(W15,data(i,1:col-1))+b15;
+    Z16(i,1)=dot(W16,data(i,1:col-1))+b16;
+    Z1(i,1)=Z11(i,1);
+    Z1(i,2)=Z12(i,1);
+    Z1(i,3)=Z13(i,1);
+    Z1(i,4)=Z14(i,1);
+    Z1(i,5)=Z15(i,1);
+    Z1(i,6)=Z16(i,1);
+    
+    %Activation Function
+    Y11(i,1)=1/(1+exp(-Z11(i,1)));
+    Y12(i,1)=1/(1+exp(-Z12(i,1)));
+    Y13(i,1)=1/(1+exp(-Z13(i,1)));
+    Y14(i,1)=1/(1+exp(-Z14(i,1)));
+    Y15(i,1)=1/(1+exp(-Z15(i,1)));
+    Y16(i,1)=1/(1+exp(-Z16(i,1)));
+    Y1(i,1)=Y11(i,1);
+    Y1(i,2)=Y12(i,1);
+    Y1(i,3)=Y13(i,1);
+    Y1(i,4)=Y14(i,1);
+    Y1(i,5)=Y15(i,1);
+    Y1(i,6)=Y16(i,1);
+    
+    %Output Layer
+    %Net Input Function
+    Z21(i,1)=dot(W21,Y1(i,:))+b21;
+    end
+    
+    %Change in Summation Terms
+    
+    C_Sum_W21=zeros(row,1);
+    C_Sum_W11=zeros(row,1);
+    C_Sum_W12=zeros(row,1);
+    C_Sum_W13=zeros(row,1);
+    C_Sum_W14=zeros(row,1);
+    C_Sum_W15=zeros(row,1);
+    C_Sum_W16=zeros(row,1);
+    
+    
+    for i=1:row
+    C_Sum_W21(i,1)=(Z21(i,1)-data(i,col))/row;
+    C_Sum_W11(i,1)=C_Sum_W21(i,1)*W21(1,1)*Y1(i,1)*(1-Y1(i,1));
+    C_Sum_W12(i,1)=C_Sum_W21(i,1)*W21(2,1)*Y1(i,2)*(1-Y1(i,2)); 
+    C_Sum_W13(i,1)=C_Sum_W21(i,1)*W21(3,1)*Y1(i,3)*(1-Y1(i,3));
+    C_Sum_W14(i,1)=C_Sum_W21(i,1)*W21(4,1)*Y1(i,4)*(1-Y1(i,4));
+    C_Sum_W15(i,1)=C_Sum_W21(i,1)*W21(5,1)*Y1(i,5)*(1-Y1(i,5));
+    C_Sum_W16(i,1)=C_Sum_W21(i,1)*W21(6,1)*Y1(i,6)*(1-Y1(i,6));
+    end
+    
+    %Change in weights and bias
+    delta_W21=zeros(6,1);
+    delta_W11=zeros(2,1);
+    delta_W12=zeros(2,1);
+    delta_W13=zeros(2,1);
+    delta_W14=zeros(2,1);
+    delta_W15=zeros(2,1);
+    delta_W16=zeros(2,1);
+    delta_b11=0;
+    delta_b12=0;
+    delta_b13=0;
+    delta_b14=0;
+    delta_b15=0;
+    delta_b16=0;
+    delta_b21=0;
+    
+    for i=1:row
+    %Output Layer
+    delta_W21=delta_W21-(C_Sum_W21(i,1)*Y1(i,1:6)');
+    delta_b21=delta_b21-C_Sum_W21(i,1);
+    %Hidden Layer
+    delta_W11=delta_W11-(C_Sum_W11(i,1)*data(i,1:col-1)');
+    delta_W12=delta_W12-(C_Sum_W12(i,1)*data(i,1:col-1)');
+    delta_W13=delta_W13-(C_Sum_W13(i,1)*data(i,1:col-1)');
+    delta_W14=delta_W14-(C_Sum_W14(i,1)*data(i,1:col-1)');
+    delta_W15=delta_W15-(C_Sum_W15(i,1)*data(i,1:col-1)');
+    delta_W16=delta_W16-(C_Sum_W16(i,1)*data(i,1:col-1)');
+    delta_b11=delta_b11-C_Sum_W11(i,1);
+    delta_b12=delta_b12-C_Sum_W12(i,1);
+    delta_b13=delta_b13-C_Sum_W13(i,1);
+    delta_b14=delta_b14-C_Sum_W14(i,1);
+    delta_b15=delta_b15-C_Sum_W15(i,1);
+    delta_b16=delta_b16-C_Sum_W16(i,1);
+    end
+    
+    %Update Weights and Bias
+    W11=W11+delta_W11*lear_rate;
+    W12=W12+delta_W12*lear_rate;
+    W13=W13+delta_W13*lear_rate;
+    W14=W14+delta_W14*lear_rate;
+    W15=W15+delta_W15*lear_rate;
+    W16=W16+delta_W16*lear_rate;
+    W21=W21+delta_W21*lear_rate;
+    b11=b11+delta_b11*lear_rate;
+    b12=b12+delta_b12*lear_rate;
+    b13=b13+delta_b13*lear_rate;
+    b14=b14+delta_b14*lear_rate;
+    b15=b15+delta_b15*lear_rate;
+    b16=b16+delta_b16*lear_rate;
+    b21=b21+delta_b21*lear_rate;
+    
+    if epo>=500000
+        result_comp(:,1)=Z21;
+        result_comp(:,2)=data(:,3);
+        result_comp
+        epo
+        break
+    end
+end
+toc
+hold on
+scatter3(data(:,1),data(:,2),data(:,3),'filled');
+scatter3(data(:,1),data(:,2),Z21);
+view(-50,50)
+legend('provided output','predicted output')
+hold off
+  
