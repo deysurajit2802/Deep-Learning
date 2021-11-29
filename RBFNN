@@ -1,0 +1,100 @@
+clc
+clear all
+ 
+tic
+data=xlsread('Clust_data_RBFNN.xlsx');
+toc
+[row,col]=size(data);
+ 
+%centroids from K-means clustering
+centroid(1,1)=2.3231;
+centroid(1,2)=2.1231;
+centroid(2,1)=19.9000;
+centroid(2,2)=22.1231;
+ 
+%variance provided in question
+variance(1,1)=2.6;
+variance(1,2)=7.86;
+ 
+%Evaluation of RBF
+for i=1:row
+    RBF_1(i,1)=exp(-(norm(data(i,1:2)-centroid(1,:)))^2/(2*variance(1,1)));
+    RBF_2(i,1)=exp(-(norm(data(i,1:2)-centroid(2,:)))^2/(2*variance(1,2)));
+end
+ 
+diff=1;
+W2_1=ones(1,2)*10^-8;
+b=10^-8;
+lear_rate=10^-3;
+epo=0;
+ 
+while diff>=10^-10;
+    
+    deltaC_W21=0;
+    deltaC_W22=0;
+    deltaC_b=0;
+    
+    %Derivation of the Cost function
+    for i=1:row
+        deltaC_W21=deltaC_W21-(data(i,3)-(W2_1(1,1)*RBF_1(i,1)+W2_1(1,2)*RBF_2(i,1)+b))*RBF_1(i,1)*(1/row);
+        deltaC_W22=deltaC_W22-(data(i,3)-(W2_1(1,1)*RBF_1(i,1)+W2_1(1,2)*RBF_2(i,1)+b))*RBF_2(i,1)*(1/row);
+        deltaC_b=deltaC_b-(data(i,3)-(W2_1(1,1)*RBF_1(i,1)+W2_1(1,2)*RBF_2(i,1)+b))*(1/row);
+    end
+    
+    %Updating weights and bias
+    W2_1_new(1,1)=W2_1(1,1)-lear_rate*deltaC_W21;
+    W2_1_new(1,2)=W2_1(1,2)-lear_rate*deltaC_W22;
+    b_new=b-lear_rate*deltaC_b;
+    
+    diff=norm(W2_1_new-W2_1)+abs(b_new-b);
+    
+    W2_1=W2_1_new;
+    b=b_new;
+    epo=epo+1;
+    
+end
+ 
+diff
+epo
+toc
+ 
+ 
+%Plot
+a1=1;
+a2=1;
+ 
+for i=1:29
+    for j=1:29
+    RBF_11=exp(-(norm([i,j]-centroid(1,:))^2/(2*variance(1,1))));
+    RBF_21=exp(-(norm([i,j]-centroid(2,:))^2/(2*variance(1,2))));
+    pred(i,j)=W2_1(1,1)*RBF_11+W2_1(1,2)*RBF_21+b;
+    if pred(i,j)>=0.5
+        pred_1(a1,1)=i;
+        pred_1(a1,2)=j;
+        a1=a1+1;
+    end
+    
+    if pred(i,j)<0.5
+        pred_2(a2,1)=i;
+        pred_2(a2,2)=j;
+        a2=a2+1;
+    end
+    end
+end
+ 
+hold on
+ 
+scatter(pred_1(:,1), pred_1(:,2),...
+    'MarkerFaceColor', [1 1 1]...
+    )
+ 
+scatter(pred_2(:,1), pred_2(:,2),...
+    'MarkerFaceColor', [1 1 0]...
+    )
+scatter(data(:,1), data(:,2),...
+    'MarkerFaceColor', [0.2 0.2 0.1 ]...
+    )
+scatter(centroid(:,1), centroid(:,2),...
+    'MarkerFaceColor', [0.5 1 0.5 ]...
+    )
+hold off
